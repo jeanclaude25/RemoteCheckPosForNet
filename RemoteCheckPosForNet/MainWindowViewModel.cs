@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Windows;
-using Plugin.Fingerprint;
-using Plugin.Fingerprint.Abstractions;
+using Windows.Security.Credentials.UI;
 
 namespace RemoteCheckPosForNet
 {
@@ -14,22 +13,29 @@ namespace RemoteCheckPosForNet
 
             try
             {
-                var availability = await CrossFingerprint.Current.GetAvailabilityAsync();
+                // Check the availability of fingerprint authentication.
+                var ucvAvailability = await UserConsentVerifier.CheckAvailabilityAsync();
 
-                switch (availability)
+                switch (ucvAvailability)
                 {
-                    case FingerprintAvailability.Available:
+                    case UserConsentVerifierAvailability.Available:
                         returnMessage = "Fingerprint verification is available.";
                         break;
-                    case FingerprintAvailability.NoSensor:
+                    case UserConsentVerifierAvailability.DeviceBusy:
+                        returnMessage = "Biometric device is busy.";
+                        break;
+                    case UserConsentVerifierAvailability.DeviceNotPresent:
                         returnMessage = "No biometric device found.";
                         break;
-                    case FingerprintAvailability.NoPermission:
-                        returnMessage = "No permission to use biometric verification.";
+                    case UserConsentVerifierAvailability.DisabledByPolicy:
+                        returnMessage = "Biometric verification is disabled by policy.";
                         break;
-                    case FingerprintAvailability.Unknown:
+                    case UserConsentVerifierAvailability.NotConfiguredForUser:
+                        returnMessage = "The user has no fingerprints registered. Please add a fingerprint to the " +
+                                        "fingerprint database and try again.";
+                        break;
                     default:
-                        returnMessage = "Fingerprint verification is currently unavailable.";
+                        returnMessage = "Fingerprints verification is currently unavailable.";
                         break;
                 }
             }
